@@ -3899,6 +3899,7 @@ public final class Settings {
         };
 
         /**
+<<<<<<< HEAD
          * Ribbon Targets
          *
          * @hide
@@ -4099,6 +4100,8 @@ public final class Settings {
         public static final String RIBBON_DRAG_HANDLE_OPACITY = "ribbon_drag_handle_opacity";
 
         /**
+=======
+>>>>>>> 0626cd4... FW: Lockscreen rework WIP
          * enable and disable fast toggle in settings
          *
          * @hide
@@ -4166,6 +4169,8 @@ public final class Settings {
         public static final String DCLICK_TOGGLE_REVERT = "dclick_toggle_revert";
 
         /**
+         * enabled and order of quick toggles
+         * 
          * @hide
          */
         public static final String MATCH_ACTION_ICON = "match_action_icon";
