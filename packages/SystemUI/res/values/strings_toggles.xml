@@ -45,7 +45,7 @@
     <string name="toggle_QUIETHOURS">Smart hours</string>
     <string name="toggle_PIE">Pie</string>
     <string name="toggle_SLEEP">Sleep</string>
-    <string name="toggle_TRDS">Burn UI</artstring>
+    <string name="toggle_TRDS">Burn UI</string>
     <string name="toggle_POWERMENU">Power Menu</string>
     <string name="toggle_SCREENSHOT">Screenshot</string>
     <string name="toggle_CUSTOM">Custom</string>
