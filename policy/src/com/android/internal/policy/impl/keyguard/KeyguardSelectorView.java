@@ -43,6 +43,8 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Xfermode;
 
+
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
@@ -98,11 +100,14 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
     private boolean mBoolLongPress;
     private int mTarget;
     private boolean mLongPress = false;
+    private boolean mUnlockBroadcasted = false;
     private boolean mUsesCustomTargets;
     private int mUnlockPos;
     private String[] targetActivities = new String[8];
     private String[] longActivities = new String[8];
     private String[] customIcons = new String[8];
+    private UnlockReceiver receiver;
+    private IntentFilter filter;
 
     private class H extends Handler {
         public void handleMessage(Message m) {
@@ -125,6 +130,8 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
             mCallback.dismiss(false);
             break;
         case ACTION_ASSIST:
+            mCallback.userActivity(0);
+            mCallback.dismiss(false);
             Intent assistIntent =
                 ((SearchManager) mContext.getSystemService(Context.SEARCH_SERVICE))
                 .getAssistIntent(mContext, UserHandle.USER_CURRENT);
@@ -133,18 +140,19 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
                 } else {
                     Log.w(TAG, "Failed to get intent for assist activity");
                 }
-                mCallback.userActivity(0);
                 break;
         case ACTION_CAMERA:
-            mActivityLauncher.launchCamera(null, null);
             mCallback.userActivity(0);
+            mCallback.dismiss(false);
+            mActivityLauncher.launchCamera(null, null);
             break;
         case ACTION_APP:
+            mCallback.userActivity(0);
+            mCallback.dismiss(false);
             Intent i = new Intent();
             i.setAction("com.android.systemui.carbon.LAUNCH_ACTION");
             i.putExtra("action", action);
             mContext.sendBroadcastAsUser(i, UserHandle.ALL);
-            mCallback.userActivity(0);
             break;
         }
     }
@@ -214,6 +222,7 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
                 if (!mGlowPadLock) {
                     mGlowPadLock = true;
                     mLongPress = true;
+                    mContext.unregisterReceiver(receiver);
                     launchAction(longActivities[mTarget]);
                  }
             }
@@ -286,6 +295,8 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
 
             if (!mUsesCustomTargets) {
 
+
+            mContext.unregisterReceiver(receiver);
             if ((!mUsesCustomTargets) || (mTargetCounter() == 0 && mUnlockCounter() < 2)) {
                 mCallback.userActivity(0);
                 mCallback.dismiss(false);
