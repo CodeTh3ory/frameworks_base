@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import android.animation.ObjectAnimator;
 import android.app.SearchManager;
 import android.app.admin.DevicePolicyManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContentResolver;
@@ -29,6 +30,8 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
@@ -180,6 +183,23 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
                     mCallback.dismiss(false);
                     break;
                 }
+
+       final Runnable SetLongPress = new Runnable () {
+            public void run() {
+                if (!mGlowPadLock) {
+                    mGlowPadLock = true;
+                    mLongPress = true;
+                    mContext.unregisterReceiver(receiver);
+                    launchAction(longActivities[mTarget]);
+                 }
+            }
+        };
+
+        public void onTrigger(View v, int target) {
+            mContext.unregisterReceiver(receiver);
+            if ((!mUsesCustomTargets) || (mTargetCounter() == 0 && mUnlockCounter() < 2)) {
+                mCallback.userActivity(0);
+                mCallback.dismiss(false);
             } else {
                 final boolean isLand = mCreationOrientation == Configuration.ORIENTATION_LANDSCAPE;
                 if ((target == 0 && (mIsScreenLarge || !isLand)) || (target == 2 && !mIsScreenLarge && isLand)) {
@@ -340,6 +360,11 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
         mSecurityMessageDisplay = new KeyguardMessageArea.Helper(this);
         View bouncerFrameView = findViewById(R.id.keyguard_selector_view_frame);
         mBouncerFrame = bouncerFrameView.getBackground();
+        mUnlockBroadcasted = false;
+        filter = new IntentFilter();
+        filter.addAction(UnlockReceiver.ACTION_UNLOCK_RECEIVER);
+        receiver = new UnlockReceiver();
+        mContext.registerReceiver(receiver, filter);
     }
 
     public void setCarrierArea(View carrierArea) {
@@ -644,5 +669,21 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
         mIsBouncing = false;
         KeyguardSecurityViewHelper.
                 hideBouncer(mSecurityMessageDisplay, mFadeView, mBouncerFrame, duration);
+    }
+
+    public class UnlockReceiver extends BroadcastReceiver {
+        public static final String ACTION_UNLOCK_RECEIVER = "com.android.lockscreen.ACTION_UNLOCK_RECEIVER";
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(ACTION_UNLOCK_RECEIVER)) {
+                if (!mUnlockBroadcasted) {
+                    mUnlockBroadcasted = true;
+                    mCallback.userActivity(0);
+                    mCallback.dismiss(false);
+                }
+            }
+            mContext.unregisterReceiver(receiver);
+        }
     }
 }
