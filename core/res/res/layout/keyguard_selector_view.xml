@@ -39,7 +39,6 @@
         android:clipChildren="false"
         android:clipToPadding="false"
         android:gravity="center">
-
         <LinearLayout
             android:id="@+id/keyguard_ribbon_and_battery"
             android:orientation="vertical"
@@ -75,6 +74,10 @@
                 android:layout_gravity="bottom|center_horizontal" />
 
         </LinearLayout>
+
+        <include layout="@layout/keyguard_message_area"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <View
             android:id="@+id/keyguard_selector_view_frame"
