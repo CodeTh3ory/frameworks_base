@@ -40,8 +40,6 @@
         android:gravity="center">
 
         <LinearLayout
-            android:id="@+id/keyguard_message_and_shortcuts"
-
             android:id="@+id/keyguard_ribbon_and_battery"
             android:orientation="vertical"
             android:layout_width="wrap_content"
