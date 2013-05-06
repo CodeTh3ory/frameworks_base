@@ -58,12 +58,9 @@ import android.view.Gravity;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-<<<<<<< HEAD
-=======
 import static com.android.internal.util.carbon.AwesomeConstants.*;
 import com.android.internal.util.carbon.AokpRibbonHelper;
 import com.android.internal.util.carbon.LockScreenHelpers;
->>>>>>> 380b354... FW: AOKP Ribbon
 import com.android.internal.telephony.IccCardConstants.State;
 import com.android.internal.widget.LockPatternUtils;
 import com.android.internal.widget.multiwaveview.GlowPadView;
@@ -79,12 +76,10 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
 
     private KeyguardSecurityCallback mCallback;
     private GlowPadView mGlowPadView;
-<<<<<<< HEAD
     private KeyguardShortcuts mShortcuts;
-=======
+
     private LinearLayout mRibbon;
     private LinearLayout ribbonView;
->>>>>>> 380b354... FW: AOKP Ribbon
     private ObjectAnimator mAnim;
     private View mFadeView;
     private boolean mIsBouncing;
@@ -93,12 +88,11 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
     private LockPatternUtils mLockPatternUtils;
     private SecurityMessageDisplay mSecurityMessageDisplay;
     private Drawable mBouncerFrame;
-<<<<<<< HEAD
     private String[] mStoredTargets;
     private int mTargetOffset;
     private boolean mIsScreenLarge;
     private int mCreationOrientation;
-=======
+
     private Resources res;
 
     private boolean mGlowPadLock;
@@ -156,7 +150,6 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
             break;
         }
     }
->>>>>>> 380b354... FW: AOKP Ribbon
 
     OnTriggerListener mOnTriggerListener = new OnTriggerListener() {
 
