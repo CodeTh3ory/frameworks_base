@@ -32,6 +32,7 @@
     android:contentDescription="@string/keyguard_accessibility_slide_unlock">
 
     <FrameLayout
+        android:id="@+id/keyguard_message_and_shortcuts"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
