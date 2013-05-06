@@ -120,6 +120,11 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
     private H mHandler = new H();
 
     private void launchAction(String action) {
+        try {
+            ActivityManagerNative.getDefault().dismissKeyguardOnNextActivity();
+        } catch (RemoteException ignored) {
+        }
+
         AwesomeConstant AwesomeEnum = fromString(action);
         switch (AwesomeEnum) {
         case ACTION_UNLOCK:
@@ -155,34 +160,6 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
     }
 
     OnTriggerListener mOnTriggerListener = new OnTriggerListener() {
-
-        public void onTrigger(View v, int target) {
-            if (mStoredTargets == null) {
-                final int resId = mGlowPadView.getResourceIdForTarget(target);
-                switch (resId) {
-                case com.android.internal.R.drawable.ic_action_assist_generic:
-                    Intent assistIntent =
-                    ((SearchManager) mContext.getSystemService(Context.SEARCH_SERVICE))
-                    .getAssistIntent(mContext, UserHandle.USER_CURRENT);
-                    if (assistIntent != null) {
-                        mActivityLauncher.launchActivity(assistIntent, false, true, null, null);
-                    } else {
-                        Log.w(TAG, "Failed to get intent for assist activity");
-                    }
-                    mCallback.userActivity(0);
-                    break;
-
-                case com.android.internal.R.drawable.ic_lockscreen_camera:
-                    mActivityLauncher.launchCamera(null, null);
-                    mCallback.userActivity(0);
-                    break;
-
-                case com.android.internal.R.drawable.ic_lockscreen_unlock_phantom:
-                case com.android.internal.R.drawable.ic_lockscreen_unlock:
-                    mCallback.userActivity(0);
-                    mCallback.dismiss(false);
-                    break;
-                }
 
        final Runnable SetLongPress = new Runnable () {
             public void run() {
