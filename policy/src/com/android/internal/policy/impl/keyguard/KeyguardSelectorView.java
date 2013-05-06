@@ -24,26 +24,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContentResolver;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-
-import android.content.IntentFilter;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.content.res.Resources.NotFoundException;
-
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.PorterDuff.Mode;
-import android.graphics.Rect;
-import android.graphics.RectF;
-import android.graphics.Xfermode;
-
-
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -66,7 +46,6 @@ import android.widget.LinearLayout;
 
 import static com.android.internal.util.carbon.AwesomeConstants.*;
 import com.android.internal.util.carbon.AokpRibbonHelper;
-
 import com.android.internal.util.carbon.LockScreenHelpers;
 import com.android.internal.telephony.IccCardConstants.State;
 import com.android.internal.widget.LockPatternUtils;
@@ -83,80 +62,14 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
 
     private KeyguardSecurityCallback mCallback;
     private GlowPadView mGlowPadView;
-    private KeyguardShortcuts mShortcuts;
-
     private LinearLayout mRibbon;
     private LinearLayout ribbonView;
-
     private ObjectAnimator mAnim;
     private View mFadeView;
     private boolean mIsBouncing;
     private LockPatternUtils mLockPatternUtils;
     private SecurityMessageDisplay mSecurityMessageDisplay;
     private Drawable mBouncerFrame;
-    private Resources res;
-
-    private boolean mGlowPadLock;
-    private boolean mBoolLongPress;
-    private int mTarget;
-    private boolean mLongPress = false;
-    private boolean mUnlockBroadcasted = false;
-    private boolean mUsesCustomTargets;
-    private int mUnlockPos;
-    private String[] targetActivities = new String[8];
-    private String[] longActivities = new String[8];
-    private String[] customIcons = new String[8];
-    private UnlockReceiver receiver;
-    private IntentFilter filter;
-
-    private class H extends Handler {
-        public void handleMessage(Message m) {
-            switch (m.what) {
-            }
-        }
-    }
-    private H mHandler = new H();
-
-    private void launchAction(String action) {
-        try {
-            ActivityManagerNative.getDefault().dismissKeyguardOnNextActivity();
-        } catch (RemoteException ignored) {
-        }
-
-        AwesomeConstant AwesomeEnum = fromString(action);
-        switch (AwesomeEnum) {
-        case ACTION_UNLOCK:
-            mCallback.userActivity(0);
-            mCallback.dismiss(false);
-            break;
-        case ACTION_ASSIST:
-            mCallback.userActivity(0);
-            mCallback.dismiss(false);
-            Intent assistIntent =
-                ((SearchManager) mContext.getSystemService(Context.SEARCH_SERVICE))
-                .getAssistIntent(mContext, UserHandle.USER_CURRENT);
-                if (assistIntent != null) {
-                    mActivityLauncher.launchActivity(assistIntent, false, true, null, null);
-                } else {
-                    Log.w(TAG, "Failed to get intent for assist activity");
-                }
-                break;
-        case ACTION_CAMERA:
-            mCallback.userActivity(0);
-            mCallback.dismiss(false);
-            mActivityLauncher.launchCamera(null, null);
-            break;
-        case ACTION_APP:
-            mCallback.userActivity(0);
-            mCallback.dismiss(false);
-            Intent i = new Intent();
-            i.setAction("com.android.systemui.carbon.LAUNCH_ACTION");
-            i.putExtra("action", action);
-            mContext.sendBroadcastAsUser(i, UserHandle.ALL);
-            break;
-        }
-    }
-
     private Resources res;
 
     private boolean mGlowPadLock;
@@ -229,73 +142,6 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
         };
 
         public void onTrigger(View v, int target) {
-            final int resId = mGlowPadView.getResourceIdForTarget(target);
-            switch (resId) {
-                case com.android.internal.R.drawable.ic_action_assist_generic:
-                    Intent assistIntent =
-                            ((SearchManager) mContext.getSystemService(Context.SEARCH_SERVICE))
-                            .getAssistIntent(mContext, UserHandle.USER_CURRENT);
-                    if (assistIntent != null) {
-                        mActivityLauncher.launchActivity(assistIntent, false, true, null, null);
-                    } else {
-                        Log.w(TAG, "Failed to get intent for assist activity");
-                    }
-                    mCallback.userActivity(0);
-                    break;
-
-                case com.android.internal.R.drawable.ic_lockscreen_camera:
-                    mActivityLauncher.launchCamera(null, null);
-                    mCallback.userActivity(0);
-                    break;
-
-                case com.android.internal.R.drawable.ic_lockscreen_unlock_phantom:
-                case com.android.internal.R.drawable.ic_lockscreen_unlock:
-                    mCallback.userActivity(0);
-                    mCallback.dismiss(false);
-                    break;
-                }
-
-       final Runnable SetLongPress = new Runnable () {
-            public void run() {
-                if (!mGlowPadLock) {
-                    mGlowPadLock = true;
-                    mLongPress = true;
-                    mContext.unregisterReceiver(receiver);
-                    launchAction(longActivities[mTarget]);
-                 }
-            }
-        };
-
-        public void onTrigger(View v, int target) {
-            mContext.unregisterReceiver(receiver);
-            if ((!mUsesCustomTargets) || (mTargetCounter() == 0 && mUnlockCounter() < 2)) {
-                mCallback.userActivity(0);
-                mCallback.dismiss(false);
-            } else {
-                final boolean isLand = mCreationOrientation == Configuration.ORIENTATION_LANDSCAPE;
-                if ((target == 0 && (mIsScreenLarge || !isLand)) || (target == 2 && !mIsScreenLarge && isLand)) {
-                    mCallback.dismiss(false);
-                } else {
-                    target -= 1 + mTargetOffset;
-                    if (target < mStoredTargets.length && mStoredTargets[target] != null) {
-                        if (mStoredTargets[target].equals(GlowPadView.EMPTY_TARGET)) {
-                            mCallback.dismiss(false);
-                        } else {
-                            try {
-                                Intent launchIntent = Intent.parseUri(mStoredTargets[target], 0);
-                                mActivityLauncher.launchActivity(launchIntent, false, true, null, null);
-                                return;
-                            } catch (URISyntaxException e) {
-                            }
-                        }
-                    }
-                }
-
-                break;
-
-            if (!mUsesCustomTargets) {
-
-
             mContext.unregisterReceiver(receiver);
             if ((!mUsesCustomTargets) || (mTargetCounter() == 0 && mUnlockCounter() < 2)) {
                 mCallback.userActivity(0);
@@ -384,49 +230,8 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-
-        Resources res = getResources();
-
-        LinearLayout glowPadContainer = (LinearLayout) findViewById(R.id.keyguard_glow_pad_container);
-        glowPadContainer.bringToFront();
-        final boolean isLandscape = res.getSystem().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-        if (glowPadContainer != null && isShortcuts() && isLandscape && !isScreenLarge() && !isEightTargets()) {
-            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL
-            );
-            int pxBottom = (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                60,
-                res.getDisplayMetrics());
-            params.setMargins(0, 0, 0, -pxBottom);
-            glowPadContainer.setLayoutParams(params);
-        }
-
-        if (glowPadContainer != null && isEightTargets()) {
-            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    Gravity.CENTER
-            );
-            int pxBottom = (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                10,
-                res.getDisplayMetrics());
-            params.setMargins(0, 0, 0, -pxBottom);
-            glowPadContainer.setLayoutParams(params);
-        }
-
-        LinearLayout msgAndShortcutsContainer = (LinearLayout) findViewById(R.id.keyguard_message_and_shortcuts);
-        msgAndShortcutsContainer.bringToFront();
-
-
         res = getResources();
         ContentResolver cr = mContext.getContentResolver();
-
-
-        res = getResources();
         mGlowPadView = (GlowPadView) findViewById(R.id.glow_pad_view);
         mGlowPadView.setOnTriggerListener(mOnTriggerListener);
         ribbonView = (LinearLayout) findViewById(R.id.keyguard_ribbon_and_battery);
@@ -674,3 +479,4 @@ public class KeyguardSelectorView extends LinearLayout implements KeyguardSecuri
             mContext.unregisterReceiver(receiver);
         }
     }
+}

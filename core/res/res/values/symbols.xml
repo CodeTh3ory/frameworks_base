@@ -821,6 +821,10 @@
   <java-symbol type="string" name="volume_icon_description_media" />
   <java-symbol type="string" name="volume_icon_description_notification" />
   <java-symbol type="string" name="volume_icon_description_ringer" />
+<<<<<<< HEAD
+=======
+  <java-symbol type="string" name="reset_perms" />
+>>>>>>> a801b55d8eb0f6f7b0ab36681107678184de0f25
   <java-symbol type="string" name="wait" />
   <java-symbol type="string" name="wday1_date1_time1_wday2_date2_time2" />
   <java-symbol type="string" name="wday1_date1_wday2_date2" />
@@ -1613,6 +1617,8 @@
   <java-symbol type="string" name="aerr_application" />
   <java-symbol type="string" name="aerr_process" />
   <java-symbol type="string" name="aerr_title" />
+  <java-symbol type="string" name="aerr_revoked_application" />
+  <java-symbol type="string" name="aerr_revoked_process" />
   <java-symbol type="string" name="android_upgrading_apk" />
   <java-symbol type="string" name="android_upgrading_complete" />
   <java-symbol type="string" name="android_upgrading_starting_apps" />
@@ -1703,6 +1709,7 @@
   <!-- AOKP symbols for service -->
   <java-symbol type="string" name="notify_turn_wifi_off_title" />
   <java-symbol type="drawable" name="ic_stat_turn_wifi_off" />
+  <java-symbol type="string" name="notify_turn_wifi_ap_off_title" />
 
   <java-symbol type="layout" name="resolver_grid" />
   <java-symbol type="layout" name="resolver_grid_alt" />
@@ -1975,6 +1982,9 @@
   <java-symbol type="dimen" name="icon_size_15" />
   <java-symbol type="dimen" name="notification_ribbon_padding" />
   <java-symbol type="dimen" name="lockscreen_ribbon_padding" />
+
+  <!-- Panel auto brightness -->
+  <java-symbol type="integer" name="config_panelAutoBrightnessValue" />
 
   <!-- Options that show upon long-pressing a key on the physical keyboard -->
   <java-symbol type="string" name="symbol_picker_0" />

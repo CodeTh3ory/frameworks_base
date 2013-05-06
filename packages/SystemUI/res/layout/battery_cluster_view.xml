@@ -81,7 +81,10 @@
             android:textAppearance="@style/TextAppearance.StatusBar.BatteryTextOnly"
             android:singleLine="true"
             android:gravity="bottom"
+<<<<<<< HEAD
             android:paddingLeft="4dip"
+=======
+>>>>>>> a801b55d8eb0f6f7b0ab36681107678184de0f25
         />
     </FrameLayout>
 </com.android.systemui.statusbar.policy.SbBatteryController>

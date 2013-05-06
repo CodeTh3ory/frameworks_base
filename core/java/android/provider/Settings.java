@@ -1209,11 +1209,12 @@ public final class Settings {
          * @return true if the value was set, false on database errors
          */
         public static boolean putArrayList(ContentResolver cr, String name, ArrayList<String> list) {
-            if (list.size() > 0) {
+            if (list != null && list.size() > 0) {
                 String joined = TextUtils.join("|",list);
                 return putString(cr, name, joined);
+            } else {
+                return putString(cr, name, "");
             }
-            return false;
         }
 
 
@@ -1221,9 +1222,11 @@ public final class Settings {
             String v = getString(cr, name);
             ArrayList<String> list = new ArrayList<String>();
             if (v != null) {
-                String[] split = v.split("\\|");
-                for (String i : split) {
-                    list.add(i);
+                if (!v.isEmpty()){
+                    String[] split = v.split("\\|");
+                    for (String i : split) {
+                        list.add(i);
+                    }
                 }
             }
             return list;
@@ -1882,7 +1885,7 @@ public final class Settings {
          * @hide
          */
         public static final String LOCK_VOLUME_KEYS = "lock_volume_keys";
-		
+
         /**
          * Determines which streams are affected by ringer mode changes. The
          * stream type's bit should be set to 1 if it should be muted when going
@@ -1963,7 +1966,7 @@ public final class Settings {
          * Whether to prevent loud volume levels when headset is first plugged in.
          * @hide
          */
-        public static final String SAFE_HEADSET_VOLUME_RESTORE = "safe_headset_volume_restore";
+        public static final String SAFE_HEADSET_VOLUME = "safe_headset_volume";
 
         /**
          * Master volume (float in the range 0.0f to 1.0f).
@@ -2608,69 +2611,6 @@ public final class Settings {
         public static final String POINTER_SPEED = "pointer_speed";
 
         /**
-         * Quick Settings Panel Tiles to Use
-         *
-         * @hide
-         */
-        public static final String QUICK_SETTINGS_TILES = "quick_settings_tiles";
-
-        /**
-         * Quick Settings Panel Dynamic Tiles
-         *
-         * @hide
-         */
-        public static final String QS_DYNAMIC_ALARM = "qs_dyanmic_alarm";
-
-        /**
-         * Quick Settings Panel Dynamic Tiles
-         *
-         * @hide
-         */
-        public static final String QS_DYNAMIC_BUGREPORT = "qs_dyanmic_bugreport";
-
-        /**
-         * Quick Settings Panel Dynamic Tiles
-         *
-         * @hide
-         */
-        public static final String QS_DYNAMIC_IME = "qs_dyanmic_ime";
-
-        /**
-         * Quick Settings Panel Dynamic Tiles
-         *
-         * @hide
-         */
-        public static final String QS_DYNAMIC_USBTETHER = "qs_dyanmic_usbtether";
-
-        /**
-         * Quick Settings Panel Dynamic Tiles
-         *
-         * @hide
-         */
-        public static final String QS_DYNAMIC_WIFI = "qs_dyanmic_wifi";
-
-        /**
-         * Quick Settings Quick Pulldown
-         *
-         * @hide
-         */
-        public static final String QS_QUICK_PULLDOWN = "qs_quick_pulldown";
-
-         /**
-         * Quick Settings Quick Pulldown if no notifications are present
-         *
-         * @hide
-         */
-        public static final String QS_NO_NOTIFICATION_PULLDOWN = "qs_no_notification_pulldown";
-
-        /**
-         * Quick Settings Collapse Pane
-         *
-         * @hide
-         */
-        public static final String QS_COLLAPSE_PANEL = "qs_collapse_panel";
-
-        /**
          * Use the Notification Power Widget? (Who wouldn't!)
          *
          * @hide
@@ -2875,12 +2815,16 @@ public final class Settings {
         public static final String HIDE_STATUSBAR = "hide_statusbar";
 
         /**
-         * Whether Status Bar is currently hidden or not for notification
-         * toggle notification shade
-         *
+         * Whether or not hidden Statusbar can be pulled down
          * @hide
          */
-        public static final String TOGGLE_NOTIFICATION_SHADE = "toggle_notification_shade";
+        public static final String HIDDEN_STATUSBAR_PULLDOWN = "hidden_statusbar_pulldown";
+
+        /**
+         * Allows hidden Statusbar timeout to be configured
+         * @hide
+         */
+        public static final String HIDDEN_STATUSBAR_PULLDOWN_TIMEOUT = "hidden_statusbar_pulldown_timeout";
 
         /**
          * whether which Ram Usage Bar mode is used on recent switcher
@@ -3899,7 +3843,6 @@ public final class Settings {
         };
 
         /**
-<<<<<<< HEAD
          * Ribbon Targets
          *
          * @hide
@@ -4100,8 +4043,6 @@ public final class Settings {
         public static final String RIBBON_DRAG_HANDLE_OPACITY = "ribbon_drag_handle_opacity";
 
         /**
-=======
->>>>>>> 0626cd4... FW: Lockscreen rework WIP
          * enable and disable fast toggle in settings
          *
          * @hide
@@ -4135,6 +4076,15 @@ public final class Settings {
          */
         public static final String USER_UI_MODE = "user_ui_mode";
 
+       /**
+        * MediaScanner behavior on boot.
+        * 0 = enabled
+        * 1 = ask (notification)
+        * 2 = disabled
+        * @hide
+        */
+        public static final String MEDIA_SCANNER_ON_BOOT = "media_scanner_on_boot";
+
         /**
          * Allows to show the background activity back the lockscreen
          * @hide
@@ -4156,11 +4106,6 @@ public final class Settings {
        /**
          * @hide
          */
-        public static final String CUSTOM_TOGGLE_ADVANCED = "custom_toggle_advanced";
-
-        /**
-         * @hide
-         */
         public static final String CUSTOM_TOGGLE_REVERT = "custom_toggle_revert";
 
         /**
@@ -4169,8 +4114,6 @@ public final class Settings {
         public static final String DCLICK_TOGGLE_REVERT = "dclick_toggle_revert";
 
         /**
-         * enabled and order of quick toggles
-         * 
          * @hide
          */
         public static final String MATCH_ACTION_ICON = "match_action_icon";
@@ -6240,6 +6183,8 @@ public final class Settings {
          */
         public static final String SCREENSAVER_ACTIVATE_ON_WIRELESS_CHARGE = "screensaver_activate_on_wireless_charger";
 
+        public static final String ENABLE_PERMISSIONS_MANAGEMENT = "enable_permissions_management";
+
         /**
          * This are the settings to be backed up.
          *
@@ -6509,6 +6454,24 @@ public final class Settings {
          * @hide
          */
         public static final String POWER_SOUNDS_ENABLED = "power_sounds_enabled";
+
+        /**
+         * Whether to sound when charger power is connected/disconnected
+         * @hide
+         */
+        public static final String POWER_NOTIFICATIONS_ENABLED = "power_notifications_enabled";
+
+        /**
+         * Whether to vibrate when charger power is connected/disconnected
+         * @hide
+         */
+        public static final String POWER_NOTIFICATIONS_VIBRATE = "power_notifications_vibrate";
+
+        /**
+         * URI for power notification sounds
+         * @hide
+         */
+        public static final String POWER_NOTIFICATIONS_RINGTONE = "power_notifications_ringtone";
 
         /**
          * URI for the "wireless charging started" sound.
@@ -7579,6 +7542,9 @@ public final class Settings {
             AUTO_TIME,
             AUTO_TIME_ZONE,
             POWER_SOUNDS_ENABLED,
+            POWER_NOTIFICATIONS_ENABLED,
+            POWER_NOTIFICATIONS_VIBRATE,
+            POWER_NOTIFICATIONS_RINGTONE,
             DOCK_SOUNDS_ENABLED,
             USB_MASS_STORAGE_ENABLED,
             ENABLE_ACCESSIBILITY_GLOBAL_GESTURE_ENABLED,

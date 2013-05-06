@@ -78,7 +78,7 @@ public class SbBatteryController extends LinearLayout {
     public static final int STYLE_ICON_CIRCLE_PERCENT = 5;
     public static final int STYLE_ICON_DOTTED_CIRCLE_PERCENT = 6;
     public static final int STYLE_ICON_SPEED = 7;
-    public static final int STYLE_ICON_STUB = 8;
+    public static final int STYLE_ICON_SQUARE = 8;
     public static final int STYLE_ICON_GEAR = 9;
     public static final int STYLE_ICON_CM = 10;
     public static final int STYLE_HIDE = 11;
@@ -156,9 +156,9 @@ public class SbBatteryController extends LinearLayout {
                  icon = plugged ? R.drawable.stat_sys_battery_charge_altcircle
                  : R.drawable.stat_sys_battery_altcircle;
                  break;
-            case STYLE_ICON_STUB:
-                 icon = plugged ? R.drawable.stat_sys_battery_charge_stub
-                 : R.drawable.stat_sys_battery_stub;
+            case STYLE_ICON_SQUARE:
+                 icon = plugged ? R.drawable.stat_sys_battery_charge_square
+                 : R.drawable.stat_sys_battery_square;
                  break;
             case STYLE_ICON_GEAR:
                  icon = plugged ? R.drawable.stat_sys_battery_gear_charge
@@ -321,7 +321,7 @@ public class SbBatteryController extends LinearLayout {
                 mBatteryIcon.setVisibility(View.VISIBLE);
                 setVisibility(View.VISIBLE);
                 break;
-            case STYLE_ICON_STUB:
+            case STYLE_ICON_SQUARE:
                 mBatteryText.setVisibility(View.GONE);
                 mBatteryTextCM.setVisibility(View.GONE);
                 mBatteryCenterText.setVisibility(View.GONE);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 The Android Open Source Project
+ * Copyright (C) 2012 Slimroms & CyanogenMod
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,99 +17,195 @@
 package com.android.systemui.statusbar.policy;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
+import android.database.ContentObserver;
 import android.os.BatteryManager;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.os.Handler;
+import android.provider.Settings;
+import android.util.AttributeSet;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
-import com.android.systemui.R;
+public class BatteryBarController extends LinearLayout {
 
-import java.util.ArrayList;
+    private static final String TAG = "BatteryBarController";
 
-public class BatteryController extends BroadcastReceiver {
-    private static final String TAG = "StatusBar.BatteryController";
+    BatteryBar mainBar;
+    BatteryBar alternateStyleBar;
 
-    private Context mContext;
-    private ArrayList<ImageView> mIconViews = new ArrayList<ImageView>();
-    private ArrayList<TextView> mLabelViews = new ArrayList<TextView>();
+    public static final int STYLE_REGULAR = 0;
+    public static final int STYLE_SYMMETRIC = 1;
 
-    private ArrayList<BatteryStateChangeCallback> mChangeCallbacks =
-            new ArrayList<BatteryStateChangeCallback>();
+    int mStyle = STYLE_REGULAR;
+    int mLocation = 0;
 
-    public interface BatteryStateChangeCallback {
-        public void onBatteryLevelChanged(int level, boolean pluggedIn);
-    }
+    protected final static int CURRENT_LOC = 1;
+    int mLocationToLookFor = 0;
 
-    private static int sBatteryLevel = 50;
-    private static boolean sBatteryCharging = false;
+    private int mBatteryLevel = 0;
+    private boolean mBatteryCharging = false;
 
-    public BatteryController(Context context) {
-        mContext = context;
+    private SettingsObserver mSettingsObserver;
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
-        context.registerReceiver(this, filter);
-    }
+    boolean isAttached = false;
+    boolean isVertical = false;
 
-    public void addIconView(ImageView v) {
-        mIconViews.add(v);
-    }
+    class SettingsObserver extends ContentObserver {
+        public SettingsObserver(Handler handler) {
+            super(handler);
+        }
 
-    public void addLabelView(TextView v) {
-        mLabelViews.add(v);
-    }
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.STATUSBAR_BATTERY_BAR),
+                    false, this);
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.STATUSBAR_BATTERY_BAR_STYLE),
+                    false, this);
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.STATUSBAR_BATTERY_BAR_THICKNESS),
+                    false, this);
+        }
 
-    public void addStateChangedCallback(BatteryStateChangeCallback cb) {
-        mChangeCallbacks.add(cb);
-    }
-
-    public void onReceive(Context context, Intent intent) {
-        final String action = intent.getAction();
-        if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
-            final int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
-            final int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS,
-                    BatteryManager.BATTERY_STATUS_UNKNOWN);
-
-            boolean plugged = false;
-            switch (status) {
-                case BatteryManager.BATTERY_STATUS_CHARGING:
-                case BatteryManager.BATTERY_STATUS_FULL:
-                    plugged = true;
-                    break;
-            }
-
-            final int icon = plugged ? R.drawable.stat_sys_battery_charge
-                    : R.drawable.stat_sys_battery;
-
-            int N = mIconViews.size();
-            for (int i = 0; i < N; i++) {
-                ImageView v = mIconViews.get(i);
-                v.setImageResource(icon);
-                v.setImageLevel(level);
-                v.setContentDescription(mContext.getString(R.string.accessibility_battery_level,
-                        level));
-            }
-            N = mLabelViews.size();
-            for (int i = 0; i < N; i++) {
-                TextView v = mLabelViews.get(i);
-                v.setText(mContext.getString(R.string.status_bar_settings_battery_meter_format,
-                        level));
-            }
-            sBatteryLevel = level;
-            sBatteryCharging = plugged;
-            updateCallbacks();
+        @Override
+        public void onChange(boolean selfChange) {
+            updateSettings();
         }
     }
 
-    public void updateCallback(BatteryStateChangeCallback cb) {
-        cb.onBatteryLevelChanged(sBatteryLevel, sBatteryCharging);
+    public BatteryBarController(Context context, AttributeSet attrs) {
+        super(context, attrs);
+
+        if (attrs != null) {
+            String ns = "http://schemas.android.com/apk/res/com.android.systemui";
+            mLocationToLookFor = attrs.getAttributeIntValue(ns, "viewLocation", 0);
+        }
     }
 
-    public void updateCallbacks() {
-        for (BatteryStateChangeCallback cb : mChangeCallbacks) {
-            cb.onBatteryLevelChanged(sBatteryLevel, sBatteryCharging);
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (!isAttached) {
+            isVertical = (getLayoutParams().height == LayoutParams.MATCH_PARENT);
+
+            isAttached = true;
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(Intent.ACTION_BATTERY_CHANGED);
+            getContext().registerReceiver(mIntentReceiver, filter);
+
+            mSettingsObserver = new SettingsObserver(new Handler());
+            mSettingsObserver.observe();
+            updateSettings();
         }
+    }
+
+    private final BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            if (Intent.ACTION_BATTERY_CHANGED.equals(action)) {
+                mBatteryLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+                mBatteryCharging = intent.getIntExtra(BatteryManager.EXTRA_STATUS, 0) == BatteryManager.BATTERY_STATUS_CHARGING;
+                Prefs.setLastBatteryLevel(context, mBatteryLevel);
+            }
+        }
+    };
+
+    @Override
+    protected void onDetachedFromWindow() {
+        if (isAttached) {
+            isAttached = false;
+            removeBars();
+            getContext().unregisterReceiver(mIntentReceiver);
+            getContext().getContentResolver().unregisterContentObserver(mSettingsObserver);
+        }
+        super.onDetachedFromWindow();
+    }
+
+    @Override
+    protected void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (isAttached) {
+            getHandler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    updateSettings();
+                }
+            }, 500);
+        }
+    }
+
+    public void addBars() {
+        // Set heights
+        DisplayMetrics metrics = getContext().getResources().getDisplayMetrics();
+        float dp = (float) Settings.System.getInt(getContext().getContentResolver(),
+                Settings.System.STATUSBAR_BATTERY_BAR_THICKNESS, 1);
+        int pixels = (int) ((metrics.density * dp) + 0.5);
+        ViewGroup.LayoutParams params = (ViewGroup.LayoutParams) getLayoutParams();
+
+        if (isVertical) {
+            params.width = pixels;
+        } else {
+            params.height = pixels;
+        }
+
+        setLayoutParams(params);
+        mBatteryLevel = Prefs.getLastBatteryLevel(getContext());
+
+        if (mStyle == STYLE_REGULAR) {
+            addView(new BatteryBar(mContext, mBatteryCharging, mBatteryLevel, isVertical),
+                    new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
+                            LayoutParams.MATCH_PARENT, 1));
+        } else if (mStyle == STYLE_SYMMETRIC) {
+            BatteryBar bar1 = new BatteryBar(mContext, mBatteryCharging, mBatteryLevel, isVertical);
+            BatteryBar bar2 = new BatteryBar(mContext, mBatteryCharging, mBatteryLevel, isVertical);
+
+            if (isVertical) {
+                bar2.setRotationY(180f);
+                addView(bar2, (new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
+                        LayoutParams.MATCH_PARENT, 1)));
+                addView(bar1, (new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
+                        LayoutParams.MATCH_PARENT, 1)));
+            } else {
+                bar1.setRotationY(180f);
+                addView(bar1, (new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
+                        LayoutParams.MATCH_PARENT, 1)));
+                addView(bar2, (new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
+                        LayoutParams.MATCH_PARENT, 1)));
+            }
+        }
+    }
+
+    public void removeBars() {
+        removeAllViews();
+    }
+
+    public void updateSettings() {
+        mStyle = Settings.System.getInt(getContext().getContentResolver(),
+                Settings.System.STATUSBAR_BATTERY_BAR_STYLE, 0);
+        mLocation = Settings.System.getInt(getContext().getContentResolver(),
+                Settings.System.STATUSBAR_BATTERY_BAR, 0);
+
+        if (isLocationValid(mLocation)) {
+            removeBars();
+            addBars();
+            setVisibility(View.VISIBLE);
+        } else {
+            removeBars();
+            setVisibility(View.GONE);
+        }
+    }
+
+    protected boolean isLocationValid(int location) {
+        return mLocationToLookFor == location;
     }
 }

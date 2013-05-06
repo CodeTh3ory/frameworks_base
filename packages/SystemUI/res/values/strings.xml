@@ -537,7 +537,7 @@
     </string>
 
     <!--  Target/Action Strings -->
-    <string name="shortcut_label">Codex Shortcuts</string>
+    <string name="shortcut_label">BLISTER Shortcuts</string>
     <string name="action_home">Home</string>
     <string name="action_back">Back</string>
     <string name="action_recents">Recents</string>
@@ -601,10 +601,12 @@
     <string name="quick_settings_pie_off_label">Pie Off</string>
     <string name="quick_settings_sleep_label">Sleep</string>
     <string name="quick_settings_volume_label">Volume</string>
-    <string name="quick_settings_trds_on_label">Burn UI On</string>
-    <string name="quick_settings_trds_off_label">Burn UI Off</string>
+    <string name="quick_settings_trds_on_label">Blister UI On</string>
+    <string name="quick_settings_trds_off_label">Blister UI Off</string>
     <string name="quick_settings_powermenu_label">Power Menu</string>
     <string name="quick_settings_screenshot_label">Screenshot</string>
+    <string name="quick_settings_stayawake_on">Stay Awake On</string>
+    <string name="quick_settings_stayawake_off">Stay Awake Off</string>
 
     <!-- Recents Ram Bar -->
     <string name="memory">RAM</string>

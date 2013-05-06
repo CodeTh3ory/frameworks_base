@@ -224,6 +224,10 @@ public class SearchPanelView extends FrameLayout implements
                     maybeSkipKeyguard();
                     AwesomeAction.launchAction(mContext, longList.get(mTarget));
                     mSearchPanelLock = true;
+                    mLongPress = true;
+                    if (shouldUnlock(longList.get(mTarget))) {
+                        maybeSkipKeyguard();
+                    }
                  }
             }
         };
@@ -262,6 +266,9 @@ public class SearchPanelView extends FrameLayout implements
                     startAssistActivity();
                 } else {
                     maybeSkipKeyguard();
+                    if (shouldUnlock(intentList.get(target))) {
+                        maybeSkipKeyguard();
+                    }
                     AwesomeAction.launchAction(mContext, intentList.get(target));
                 }
                 mHandler.removeCallbacks(SetLongPress);
@@ -295,6 +302,18 @@ public class SearchPanelView extends FrameLayout implements
 
         updateSettings();
         setDrawables();
+    }
+
+
+    private boolean shouldUnlock(String action) {
+        if (action.equals(AwesomeConstant.ACTION_SILENT_VIB.value()) ||
+            action.equals(AwesomeConstant.ACTION_VIB.value()) ||
+            action.equals(AwesomeConstant.ACTION_POWER.value()) ||
+            action.equals(AwesomeConstant.ACTION_SILENT.value())) {
+            return false;
+        }
+
+        return true;
     }
 
     private void maybeSkipKeyguard() {
