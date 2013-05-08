@@ -537,7 +537,7 @@
     </string>
 
     <!--  Target/Action Strings -->
-    <string name="shortcut_label">BLISTER Shortcuts</string>
+    <string name="shortcut_label">AXI0M Shortcuts</string>
     <string name="action_home">Home</string>
     <string name="action_back">Back</string>
     <string name="action_recents">Recents</string>
