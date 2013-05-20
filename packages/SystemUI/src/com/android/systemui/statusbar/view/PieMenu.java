@@ -224,6 +224,7 @@ public class PieMenu extends FrameLayout {
     private boolean mUseMenuAlways;
     private boolean mUseSearch;
     private boolean mUseLastApp;
+    private boolean mUseKillTask;
     private boolean mHapticFeedback;
 
     // Animations
@@ -282,6 +283,7 @@ public class PieMenu extends FrameLayout {
                 Settings.System.EXPANDED_DESKTOP_STATE, 0) == 1;
         mUseMenuAlways = Settings.System.getInt(mContext.getContentResolver(), Settings.System.PIE_MENU, 1) == 1;
         mUseLastApp = Settings.System.getInt(mContext.getContentResolver(), Settings.System.PIE_LAST_APP, 0) == 1;
+        mUseKillTask = Settings.System.getInt(mContext.getContentResolver(), Settings.System.PIE_KILL_TASK, 0) == 1;
         mUseSearch = Settings.System.getInt(mContext.getContentResolver(), Settings.System.PIE_SEARCH, 1) == 1;
         mStatusMode = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.PIE_MODE, 2);
@@ -644,9 +646,10 @@ public class PieMenu extends FrameLayout {
     }
 
     private boolean canItemDisplay(PieItem item) {
-        return !(item.getName().equals(PieControl.LAST_APP_BUTTON) && !mUseLastApp) &&
-                !(item.getName().equals(PieControl.MENU_BUTTON) && !mPanel.currentAppUsesMenu() && !mUseMenuAlways) &&
-                !(item.getName().equals(PieControl.SEARCH_BUTTON) && !mUseSearch);
+        return !(item.getName().equals(PieControl.KILL_TASK_BUTTON) && !mUseKillTask) &&
+               !(item.getName().equals(PieControl.LAST_APP_BUTTON) && !mUseLastApp) &&
+               !(item.getName().equals(PieControl.MENU_BUTTON) && !mPanel.currentAppUsesMenu() && !mUseMenuAlways) &&
+               !(item.getName().equals(PieControl.SEARCH_BUTTON) && !mUseSearch);
     }
 
     private void layoutPie() {
@@ -658,6 +661,7 @@ public class PieMenu extends FrameLayout {
         if (!mPanel.currentAppUsesMenu() && !mUseMenuAlways) itemCount--;
         if (!mUseSearch) itemCount--;
         if (!mUseLastApp) itemCount--;
+        if (!mUseKillTask) itemCount--;
 
         int totalCount = 0;
         int lesserSweepCount = 0;
